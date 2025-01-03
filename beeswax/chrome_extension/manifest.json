@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
-    "name": "BeesWax DEV VERSION",
-    "version": "1.01",
+    "name": "BeesWax",
+    "version": "1.02",
     "permissions": ["tabs", "activeTab"],
     "host_permissions": ["https://beeswax.onrender.com/*"],
     "background": {
