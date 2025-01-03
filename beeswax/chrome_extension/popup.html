@@ -54,6 +54,9 @@ h2 {text-align: center; }
   background-color: #ffde59;
   font-weight: 799;}
 
+#a1{display: flex;}
+.a2{flex: 1;}
+
 textarea {
   font-family: Arial, sans-serif;
   font-weight: 400;
@@ -68,6 +71,9 @@ textarea {
 
   }
 
+.settings-buttons{border: none;}
+.settings-buttons:hover{text-decoration: underline;}
+
   </style>
 </head>
 
@@ -78,8 +84,23 @@ textarea {
     <p>No coupons available for this website.</p>
   </div>
   <h4>Add a coupon code<span class="curr_site"></span></h4>
-  <input type="text" id="coupon" placeholder="Coupon Code" />
+  <input type="text" id="coupon" placeholder="Coupon Code" >
   <textarea name="desc" id="desc" rows="5" placeholder="Description (optional)" maxlength="100"></textarea>
+  
+  <div id="expiry-settings" style="display: none;">
+
+    <button id="toggle-seasonal" class="settings-buttons">↓ Add seasonal coupon</button>
+    <div id="seasonal-settings" style="display: none;">
+      <label for="seasonal-date">Start Date:</label>
+      <input type="date" id="start-date" >
+    </div>
+
+    <label for="expiry-date">Expiry Date:</label>
+    <input type="date" id="expiry-date" >
+
+  </div>
+  <button id="toggle-expiry" class="settings-buttons">↓ Add expiry date</button>
+  
   <button id="add-coupon">Add Coupon</button>
   
   <template id="template">
@@ -89,6 +110,7 @@ textarea {
           <p>Code: <span class="code"></span></p>
           <p>Rating: <span class="rating"></span></p>
           <p><span class="desc"></span></p>
+          <p><span class = 'expiryDate'></span></p>
         </div>
         <div class="rate-buttons">
           <button class="rate-up">👍</button>
@@ -97,8 +119,11 @@ textarea {
       </div>
     </div>
   </template>
+
+  <template id="showmore">
+    <button class="showmoreButton">▼ Show more</button>
+  </template>
   
   <script src="popup.js"></script>
 </body>
 </html>
-
