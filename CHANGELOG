@@ -1,0 +1,20 @@
+BEESWAX CHANGELOG
+
+1.00: Proof of concept released
+
+1.01 / 1.0.1: 
+- Added coupon descriptions and rating system
+
+1.02:
+- Updated ui to show top 3 rated coupons
+- Added coupon expiry dates and seasonal coupons
+- Added firefox support 
+- Moved database to NoSQL 
+
+
+Future plans:
+
+- Add k-anonymity to all requests *****
+- Account system to handle spam and malicious inputes
+- Enter in coupon using web scrapers
+
