@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>BeesWax</title>
+  <meta charset="UTF-8">
+  <style>
+    
+body {
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
+  padding: 10px;
+  margin: 0 auto;
+width: 300px;}
+  
+
+.coupon {
+  background-color: #f4f4f4;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 5px;}
+
+.coupon p {margin: 5px 0;}
+
+.content {
+display: flex;
+align-items: center; 
+justify-content: space-between;}
+
+.details {flex: 1; }
+
+.rate-buttons {
+  display: flex;
+  flex-direction: column; 
+  align-items: center; }
+
+.rate-buttons button { margin: 2px 0; }
+
+input, textarea, button {
+  width: 100%; 
+  margin: 5px 0;
+  box-sizing: border-box;
+}
+
+h2 {text-align: center; }
+
+  
+#desc{ height: 50px;}
+
+#add-coupon{ 
+  border-radius: 10px; 
+  background-color: #ffde59;
+  font-weight: 799;}
+
+textarea {
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.3;
+  letter-spacing: 0.5px;
+    width: 100%; 
+    height: 150px; 
+    resize: none; 
+    padding: 3px; 
+    box-sizing: border-box; 
+
+  }
+
+  </style>
+</head>
+
+<body>
+  <h2>⬡ BeesWax Coupon Finder DEV VERSION</h3>
+  <br>
+  <div id="section">
+    <p>No coupons available for this website.</p>
+  </div>
+  <h4>Add a coupon code<span class="curr_site"></span></h4>
+  <input type="text" id="coupon" placeholder="Coupon Code" />
+  <textarea name="desc" id="desc" rows="5" placeholder="Description (optional)" maxlength="100"></textarea>
+  <button id="add-coupon">Add Coupon</button>
+  
+  <template id="template">
+    <div class="coupon">
+      <div class="content">
+        <div class="details"> 
+          <p>Code: <span class="code"></span></p>
+          <p>Rating: <span class="rating"></span></p>
+          <p><span class="desc"></span></p>
+        </div>
+        <div class="rate-buttons">
+          <button class="rate-up">👍</button>
+          <button class="rate-down">👎</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="showmore">
+    <button class="showmoreButton">▼ Show more</button>
+  </template>
+  
+  <script src="popup.js"></script>
+</body>
+</html>
+
