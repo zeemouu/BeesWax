@@ -1,41 +1,89 @@
+#version 1.02 
+
 from flask import Flask, request, jsonify
-import sqlite3
 from flask_cors import CORS
+from pymongo import MongoClient
+from bson import ObjectId
+from bson.json_util import dumps
+from datetime import datetime
 
-##main
 
-#bzzzz bzzz bz bz bzzz 
 #🐝
+#bzzz bzz bzzz 
 
 app = Flask(__name__)
 CORS(app)
 
-@app.route("/check_website", methods=["GET"])
+client = MongoClient(mongo_uri) # found in environment variables. use ('127.0.0.1' , 27017) if running locally
+db = client["coupons_db"]
+coll = db["coupons"]
+
+def update_date(coupon): # supposed to be run every day to update dates. not done yet lol
+
+    if coupon.get('startDate'):
+        if coupon.get('startDate'):
+                start = datetime.strptime(coupon['startDate'], '%d-%m-%Y')
+                expiry = datetime.strptime(coupon['expiryDate'], '%d-%m-%Y')
+
+                start = start.replace(year=datetime.now().year)
+                expiry = expiry.replace(year=datetime.now().year)
+
+                if start > expiry:
+                    expiry = expiry.replace(year = datetime.now().year +1)
+
+                if start <= datetime.now() <= expiry:
+                    coupon['hidden'] = False
+                else:
+                    coupon['hidden'] = True
+
+
+        elif datetime.now() > datetime.strptime(coupon['expiryDate'] , '%d-%m-%Y'):
+            coupon['hidden'] = True
+
+        return coupon
+
+@app.route("/check_website", methods=["GET"]) # TO DO : update this to hash website domains opened by users. PRIORITY ITEM
 def check_website():
     domain = request.args.get("domain")
-    conn = sqlite3.connect("coupons.db")
-    cursor = conn.cursor()
-    cursor.execute("SELECT id, code, rating , desc FROM coupons WHERE website = ?", (domain,))
-    coupons = cursor.fetchall()
-    conn.close()
+    coupons = list(coll.find({"website": domain, "hidden": {"$ne": True}}, {"_id": 1, "code": 1, "rating": 1, "desc": 1 , "expiryDate": 1}))
 
-    return jsonify({"success": True, "coupons": [{"id": c[0], "code": c[1], "rating": c[2] , "desc": c[3]} for c in coupons]})
+    for coupon in coupons:
+        coupon["_id"] = str(coupon["_id"])
+        if "expiryDate" not in coupon:
+            coupon["expiryDate"] = None
+            coupon["expiresIn"] = None
+        else:
+            coupon['expiresIn'] = (datetime.strptime(coupon['expiryDate'] , "%Y-%m-%d") - datetime.now()).days
+        
+    return jsonify({"success": True, "coupons": coupons})
 
-@app.route("/add_coupon", methods=["POST"])
+@app.route("/update") 
+def update():
+    for coupon in coll.find():
+        new = update_date(coupon)
+        coll.update_one({'_id': coupon['_id']}, {'$set': {'hidden': new['hidden']}})
+    return jsonify({"success": True, "message": "Coupons updated."})
+
+@app.route("/add_coupon", methods=["POST"])  
 def add_coupon():
     data = request.json
     website = data["website"]
-    coupon = data["coupon"]
+    code = data["coupon"]
     desc = data['desc']
-    print(desc)
-
-    conn = sqlite3.connect("coupons.db")
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO coupons (website, code , rating ,  desc) VALUES (?,?,?,?)", (website, coupon ,0 , desc))
+    couponType = data['type']
     
-    conn.commit()
-    conn.close()
-    return jsonify({"success": True})
+    if couponType =='expires':
+        coupon = {"website": website, "code": code, "rating": 0, "desc": desc, 'expiryDate':data['expiryDate']}
+
+    elif couponType == 'seasonal':
+        coupon = {"website": website, "code": code, "rating": 0, "desc": desc, 'expiryDate':data['expiryDate'] ,  'startDate': data['startDate']}
+
+    else:
+        coupon = {"website": website, "code": code, "rating": 0, "desc": desc}
+
+    result = coll.insert_one(coupon)
+
+    return jsonify({"success": True, "coupon_id": str(result.inserted_id)})
 
 @app.route("/rate_coupon", methods=["POST"])
 def rate_coupon():
@@ -43,23 +91,22 @@ def rate_coupon():
     coupon_id = data.get("coupon_id")
     rating_change = data.get("rating_change")
 
-    conn = sqlite3.connect("coupons.db")
-    cursor = conn.cursor()
-
-    cursor.execute("UPDATE coupons SET rating = rating + ? WHERE id = ?",(rating_change, coupon_id))
-    conn.commit()
-    cursor.execute("SELECT rating FROM coupons WHERE id = ?", (coupon_id,))
-    result = cursor.fetchone()
-
-    if result:
-        new_rating = result[0]
+    coupon = coll.find_one({"_id": ObjectId(coupon_id)})
+    if coupon:
+        new_rating = coupon.get("rating", 0) + rating_change
         if new_rating < 0:
-            cursor.execute("DELETE FROM coupons WHERE id = ?", (coupon_id,))
-            conn.commit()
-            conn.close()
+            coll.update_one({"_id": ObjectId(coupon_id)}, {"$set": {"rating": new_rating}})
+            coll.update_one({"_id": ObjectId(coupon_id)}, {"$set": {"hidden": True}})
             return jsonify({"success": True, "deleted": True})
-    conn.close()
-    return jsonify({"success": True, "deleted": False})
+        else:
+            coll.update_one({"_id": ObjectId(coupon_id)}, {"$set": {"rating": new_rating}})
+            return jsonify({"success": True, "deleted": False})
+
+    return jsonify({"success": False, "message": "Coupon not found"}), 404
+
+@app.route('/display_data', methods =['GET' , 'POST']) # fyi before using: its ugly
+def display():
+     return jsonify(dumps(list(coll.find())))
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="::", port=5000)
