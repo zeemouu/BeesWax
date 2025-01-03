@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const currSite = document.querySelector(".curr_site");
     if (currSite) { currSite.textContent = " to " + domain; }
 
-    fetch(`http://[::1]:5000/check_website?domain=${domain}`)
+    fetch(`https://beeswax.onrender.com/check_website?domain=${domain}`)
       .then((response) => response.json())
       .then((data) => {
         if (data.success && data.coupons.length > 0) {
@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (coupon) {
         if (type === 'expires') {
           const expiryDate = document.getElementById("expiry-date").value;
-          fetch("http://[::1]:5000/add_coupon", {
+          fetch("https://beeswax.onrender.com/add_coupon", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ website, coupon, desc, type, expiryDate }),
@@ -72,7 +72,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const expiryDate = document.getElementById("expiry-date").value;
           const startDate = document.getElementById("start-date").value;
 
-          fetch("http://[::1]:5000/add_coupon", {
+          fetch("https://beeswax.onrender.com/add_coupon", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ website, coupon, desc, type, expiryDate, startDate }),
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               location.reload();
             }).catch((err) => console.error(err));
         } else {
-          fetch("http://[::1]:5000/add_coupon", {
+          fetch("https://beeswax.onrender.com/add_coupon", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ website, coupon, desc, type }),
@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function rateCoupon(couponId, ratingChange) {
-    fetch("http://[::1]:5000/rate_coupon", {
+    fetch("https://beeswax.onrender.com/rate_coupon", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ coupon_id: couponId, rating_change: ratingChange }),
