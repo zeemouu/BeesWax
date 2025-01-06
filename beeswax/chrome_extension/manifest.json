@@ -2,7 +2,7 @@
     "manifest_version": 3,
     "name": "BeesWax",
     "version": "1.02",
-    "permissions": ["tabs", "activeTab"],
+    "permissions": ["activeTab"],
     "host_permissions": ["https://beeswax.onrender.com/*"],
     "background": {
       "service_worker": "background.js"
@@ -12,4 +12,3 @@
       "default_icon": "icon.png"
     }
   }
-  
