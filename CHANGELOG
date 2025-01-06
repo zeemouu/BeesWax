@@ -10,11 +10,10 @@ BEESWAX CHANGELOG
 - Added coupon expiry dates and seasonal coupons
 - Added firefox support 
 - Moved database to NoSQL 
-
+- Made regular browsing anonymous through k-anonymity 
 
 Future plans:
 
-- Add k-anonymity to all requests *****
 - Account system to handle spam and malicious inputes
 - Enter in coupon using web scrapers
 
