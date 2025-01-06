@@ -6,19 +6,21 @@ from pymongo import MongoClient
 from bson import ObjectId
 from bson.json_util import dumps
 from datetime import datetime
-
-
-#🐝
-#bzzz bzz bzzz 
+import hashlib
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-client = MongoClient(mongo_uri) # found in environment variables. use ('127.0.0.1' , 27017) if running locally
+client = MongoClient(os.environ.get("mongo_uri")) # found in environment variables. use ('127.0.0.1' , 27017) or other if running locally
 db = client["coupons_db"]
 coll = db["coupons"]
 
-def update_date(coupon): # supposed to be run every day to update dates. not done yet lol
+
+def hashDomain(domain):
+    return hashlib.sha256(domain.encode()).hexdigest()[:5]
+
+def update_date(coupon): # supposed to be run every day to update dates. not automated yet lol
 
     if coupon.get('startDate'):
         if coupon.get('startDate'):
@@ -40,12 +42,15 @@ def update_date(coupon): # supposed to be run every day to update dates. not don
         elif datetime.now() > datetime.strptime(coupon['expiryDate'] , '%d-%m-%Y'):
             coupon['hidden'] = True
 
-        return coupon
+    if not coupon.get("hash"):
+        coupon['hash'] = hashDomain(coupon.get('website'))
 
-@app.route("/check_website", methods=["GET"]) # TO DO : update this to hash website domains opened by users. PRIORITY ITEM
+    return coupon
+
+@app.route("/check_website", methods=["GET"])
 def check_website():
-    domain = request.args.get("domain")
-    coupons = list(coll.find({"website": domain, "hidden": {"$ne": True}}, {"_id": 1, "code": 1, "rating": 1, "desc": 1 , "expiryDate": 1}))
+    hashedDomain = request.args.get("hashedDomain")
+    coupons = list(coll.find({"hash": hashedDomain, "hidden": {"$ne": True}}, {"_id": 1, "website": 1 , "code": 1, "rating": 1, "desc": 1 , "expiryDate": 1}))
 
     for coupon in coupons:
         coupon["_id"] = str(coupon["_id"])
@@ -73,13 +78,13 @@ def add_coupon():
     couponType = data['type']
     
     if couponType =='expires':
-        coupon = {"website": website, "code": code, "rating": 0, "desc": desc, 'expiryDate':data['expiryDate']}
+        coupon = {"website": website, "code": code, "rating": 0, "desc": desc, "hash": hashDomain(website), 'expiryDate':data['expiryDate']}
 
     elif couponType == 'seasonal':
-        coupon = {"website": website, "code": code, "rating": 0, "desc": desc, 'expiryDate':data['expiryDate'] ,  'startDate': data['startDate']}
+        coupon = {"website": website, "code": code, "rating": 0, "desc": desc, "hash": hashDomain(website), 'expiryDate':data['expiryDate'] ,  'startDate': data['startDate']}
 
     else:
-        coupon = {"website": website, "code": code, "rating": 0, "desc": desc}
+        coupon = {"website": website, "code": code, "rating": 0, "desc": desc, "hash": hashDomain(website)}
 
     result = coll.insert_one(coupon)
 
@@ -90,8 +95,15 @@ def rate_coupon():
     data = request.json
     coupon_id = data.get("coupon_id")
     rating_change = data.get("rating_change")
+    
+    print(f"Received coupon_id: {coupon_id}, rating_change: {rating_change}")
 
-    coupon = coll.find_one({"_id": ObjectId(coupon_id)})
+    try:
+        coupon = coll.find_one({"_id": ObjectId(coupon_id)})
+    except Exception as e:
+        print(f"Error converting coupon_id to ObjectId: {e}")
+        return jsonify({"success": False, "message": "Invalid coupon_id"}), 400
+
     if coupon:
         new_rating = coupon.get("rating", 0) + rating_change
         if new_rating < 0:
@@ -107,6 +119,7 @@ def rate_coupon():
 @app.route('/display_data', methods =['GET' , 'POST']) # fyi before using: its ugly
 def display():
      return jsonify(dumps(list(coll.find())))
+
 
 if __name__ == "__main__":
     app.run(host="::", port=5000)
