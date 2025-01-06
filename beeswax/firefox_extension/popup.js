@@ -28,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           for (let i = 0; i < Math.min(coupons.length, 3); i++) {
             if (coupons[i]) {
               showcoupon(coupons[i]);
-              shown++;
             }
           }
 
@@ -37,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const showmoreButton = temptemplate.querySelector(".showmoreButton");
 
             showmoreButton.addEventListener("click", () => {
-              for (let i = shown; i < coupons.length; i++) {
+              for (let i = 3; i < coupons.length; i++) {
                 showcoupon(coupons[i]);
               }
               showmoreButton.remove();
